@@ -4,10 +4,26 @@ import inspect
 import sys
 sys.path.append('./module')
 
+
+class info(){
+    
+    Data 통채로
+self.data = DBread()
+self.dksdakfsdjf
+
+#############
+
+    startDate
+    endDate
+    stockCode
+
+}
+
 class autoTestHandler():
     def __init__(self):
         self.register_module_list = []
         self.enable_module_list = []
+        self.strategy = strtegy()
         self.info="" #TODO info 설정 필요한 내용들 로드하여 각 모듈에 전달
 
     def proving (self, path):
@@ -28,7 +44,7 @@ class autoTestHandler():
 
     def activation(self):
         for module in self.register_module_list:
-            self.enable_module_list.append(module(self.info))
+            self.enable_module_list.append(module(self.info, self.strategy))
 
     def process(self):
         self.proving("./module")
