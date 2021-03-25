@@ -122,9 +122,8 @@ class dart_stock_info():
     def save_fs(self, fs, filename, dir_path):
         fs.save(filename=filename, path=dir_path)
 
-
-    @process_exception_class_func
     '''
+    @process_exception_class_func
     def get_financial_reports(self, corp_name, *during):
         corp_fs = self.__corp_list.find_by_corp_name(corp_name, exactly=True)
         for date in range(*during):
