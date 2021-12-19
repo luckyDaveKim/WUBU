@@ -4,14 +4,30 @@ import pandas as pd
 import pymysql
 import requests
 import sys
+from Query import Query
 from bs4 import BeautifulSoup
 from datetime import datetime
 from threading import Timer
 
 
 class DBUpdater:
+    __conn = None
+    __query = None
+
     def __init__(self):
         """생성자: MariaDB 연결 및 종목코드 딕셔너리 생성"""
+        self.__conn = self.__get_init_db()
+        self.__query = Query()
+
+        self.__init_tables()
+
+        self.__companies_id_to_name = dict()
+
+    def __del__(self):
+        """소멸자: MariaDB 연결 해제"""
+        self.__conn.close()
+
+    def __get_init_db(self):
         try:
             with open('config-db.json', 'r') as in_file:
                 config = json.load(in_file)
@@ -26,55 +42,20 @@ class DBUpdater:
                 json.dump(config, out_file)
             sys.exit()
 
-        self.conn = pymysql.connect(host=host, user=user,
-                                    password=password, db=db)
+        return pymysql.connect(host=host, user=user, password=password, db=db)
 
-        with self.conn.cursor() as curs:
-            sql = """
-            CREATE TABLE IF NOT EXISTS company_info
-            (
-                id          varchar(20) not null primary key,
-                name        varchar(40) null,
-                last_update date        null
-            )
-            """
-            curs.execute(sql)
+    def __execute(self, query):
+        self.__conn.cursor().execute(query)
+        self.__conn.commit()
 
-            sql = """
-            CREATE TABLE IF NOT EXISTS daily_price
-            (
-                company_id varchar(20) not null,
-                date       date        not null,
-                open       bigint      null,
-                high       bigint      null,
-                low        bigint      null,
-                close      bigint      null,
-                primary key (company_id, date)
-            )
-            """
-            curs.execute(sql)
+    def __init_tables(self):
+        self.__execute(self.__query.init_company_info())
+        self.__execute(self.__query.init_daily_price())
+        self.__execute(self.__query.init_daily_volume())
 
-            sql = """
-            CREATE TABLE IF NOT EXISTS daily_volume
-            (
-                company_id varchar(20) not null,
-                date       date        not null,
-                volume     bigint      null,
-                primary key (company_id, date)
-            )
-            """
-            curs.execute(sql)
-        self.conn.commit()
-        self.codes = dict()
-
-    def __del__(self):
-        """소멸자: MariaDB 연결 해제"""
-        self.conn.close()
-
-    def read_krx_code(self):
+    def get_companies(self):
         """KRX로부터 상장기업 목록 파일을 읽어와서 데이터프레임으로 반환"""
-        url = 'http://kind.krx.co.kr/corpgeneral/corpList.do?method=' \
-              'download&searchType=13'
+        url = 'http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13'
         krx = pd.read_html(url, header=0)[0]
         krx = krx[['종목코드', '회사명']]
         krx = krx.rename(columns={'종목코드': 'id', '회사명': 'name'})
@@ -83,89 +64,93 @@ class DBUpdater:
 
     def update_comp_info(self):
         """종목코드를 company_info 테이블에 업데이트 한 후 딕셔너리에 저장"""
-        sql = "SELECT * FROM company_info"
-        df = pd.read_sql(sql, self.conn)
-        for idx in range(len(df)):
-            self.codes[df['id'].values[idx]] = df['name'].values[idx]
+        df = pd.read_sql(self.__query.select_company_info(), self.__conn)
+        for index in range(len(df)):
+            id = df['id'].values[index]
+            name = df['name'].values[index]
+            self.__companies_id_to_name[id] = name
 
-        with self.conn.cursor() as curs:
-            sql = "SELECT max(last_update) FROM company_info"
-            curs.execute(sql)
+        with self.__conn.cursor() as curs:
+            curs.execute(self.__query.get_last_update_date())
             rs = curs.fetchone()
             today = datetime.today().strftime('%Y-%m-%d')
-            if rs[0] == None or rs[0].strftime('%Y-%m-%d') < today:
-                krx = self.read_krx_code()
-                for idx in range(len(krx)):
-                    id = krx.id.values[idx]
-                    name = krx.name.values[idx]
-                    print('{}, {}'.format(id, name))
-                    sql = f"INSERT INTO company_info (id, name, last_update)" \
-                          f"VALUES ('{id}', '{name}', '{today}')" \
-                          f"ON DUPLICATE KEY UPDATE id='{id}', last_update='{today}'"
-                    curs.execute(sql)
-                    self.codes[id] = name
-                    tmnow = datetime.now().strftime('%Y-%m-%d %H:%M')
-                    print(f"[{tmnow}] #{idx + 1:04d} REPLACE INTO company_info " \
-                          f"VALUES ({id}, {name}, {today})")
-                self.conn.commit()
-                print('')
+            needed_update = rs[0] == None or rs[0].strftime('%Y-%m-%d') < today
+            if needed_update:
+                companies = self.get_companies()
+                for index in range(len(companies)):
+                    id = companies.id.values[index]
+                    name = companies.name.values[index]
+                    print(f'INSERT company_info; id="{id}", name="{name}"')
+                    curs.execute(self.__query.insert_company_info(id, name, today))
+            self.__conn.commit()
 
-    def read_naver(self, id, name, pages_to_fetch):
+    def get_daily_data(self, id, name, pages_to_fetch):
         """네이버에서 주식 시세를 읽어서 데이터프레임으로 반환"""
         try:
             url = f"http://finance.naver.com/item/sise_day.nhn?code={id}"
-            html = BeautifulSoup(requests.get(url,
-                                              headers={'User-agent': 'Mozilla/5.0'}).text, "lxml")
-            pgrr = html.find("td", class_="pgRR")
-            if pgrr is None:
+            html = BeautifulSoup(requests.get(url, headers={'User-agent': 'Mozilla/5.0'}).text, "lxml")
+            has_data = html.find("td", class_="pgRR") is not None
+            if not has_data:
                 return None
-            s = str(pgrr.a["href"]).split('=')
-            lastpage = s[-1]
+
             df = pd.DataFrame()
-            pages = min(int(lastpage), pages_to_fetch)
+            last_page_num = str(html.find("td", class_="pgRR").a["href"]).split('=')[-1]
+            pages = min(int(last_page_num), pages_to_fetch)
             for page in range(1, pages + 1):
-                pg_url = '{}&page={}'.format(url, page)
-                df = df.append(pd.read_html(requests.get(pg_url,
-                                                         headers={'User-agent': 'Mozilla/5.0'}).text)[0])
+                at_page_url = f'{url}&page={page}'
+                df = df.append(pd.read_html(requests.get(at_page_url, headers={'User-agent': 'Mozilla/5.0'}).text)[0])
                 tmnow = datetime.now().strftime('%Y-%m-%d %H:%M')
-                print('[{}] {} ({}) : {:04d}/{:04d} pages are downloading...'.
-                      format(tmnow, name, id, page, pages), end="\r")
-            df = df.rename(columns={'날짜': 'date', '종가': 'close', '전일비': 'diff'
-                , '시가': 'open', '고가': 'high', '저가': 'low', '거래량': 'volume'})
+                print(f'[{tmnow}] {name} ({id}) : {page:04d}/{pages:04d} pages are downloading...', end="\r")
+            df = df.rename(columns={
+                '날짜': 'date',
+                '종가': 'close',
+                '전일비': 'diff',
+                '시가': 'open',
+                '고가': 'high',
+                '저가': 'low',
+                '거래량': 'volume'
+            })
             df['date'] = df['date'].replace('.', '-')
             df = df.dropna()
-            df[['close', 'diff', 'open', 'high', 'low', 'volume']] = df[['close',
-                                                                         'diff', 'open', 'high', 'low',
-                                                                         'volume']].astype(int)
+            df[[
+                'close',
+                'diff',
+                'open',
+                'high',
+                'low',
+                'volume'
+            ]] = df[[
+                'close',
+                'diff',
+                'open',
+                'high',
+                'low',
+                'volume'
+            ]].astype(int)
             df = df[['date', 'open', 'high', 'low', 'close', 'diff', 'volume']]
         except Exception as e:
             print('Exception occured :', str(e))
             return None
         return df
 
-    def replace_into_db(self, df, num, id, name):
+    def update_daily_price_and_volume(self, df, num, id, name):
         """네이버에서 읽어온 주식 시세를 DB에 REPLACE"""
-        with self.conn.cursor() as curs:
+        with self.__conn.cursor() as curs:
             for r in df.itertuples():
-                sql = f"REPLACE INTO daily_price VALUES ('{id}', " \
-                      f"'{r.date}', {r.open}, {r.high}, {r.low}, {r.close})"
-                curs.execute(sql)
-
-                sql = f"REPLACE INTO daily_volume VALUES ('{id}', " \
-                      f"'{r.date}', {r.volume})"
-                curs.execute(sql)
-            self.conn.commit()
-            print('[{}] #{:04d} {} ({}) : {} rows > REPLACE INTO daily_' \
-                  'price [OK]'.format(datetime.now().strftime('%Y-%m-%d' \
-                                                              ' %H:%M'), num + 1, name, id, len(df)))
+                # 일별 가격 추가
+                curs.execute(self.__query.replace_into_daily_price(id, r.date, r.open, r.high, r.low, r.close))
+                # 일별 거래량 추가
+                curs.execute(self.__query.replace_into_daily_volume(id, r.date, r.volume))
+            self.__conn.commit()
+            print(f'[SUCCESS] #{num + 1:04d} {name} ({id}) : {len(df)} REPLACE INTO daily_price')
 
     def update_daily_price(self, pages_to_fetch):
         """KRX 상장법인의 주식 시세를 네이버로부터 읽어서 DB에 업데이트"""
-        for idx, id in enumerate(self.codes):
-            df = self.read_naver(id, self.codes[id], pages_to_fetch)
+        for idx, id in enumerate(self.__companies_id_to_name):
+            df = self.get_daily_data(id, self.__companies_id_to_name[id], pages_to_fetch)
             if df is None:
                 continue
-            self.replace_into_db(df, idx, id, self.codes[id])
+            self.update_daily_price_and_volume(df, idx, id, self.__companies_id_to_name[id])
 
     def execute_daily(self):
         """실행 즉시 및 매일 오후 다섯시에 daily_price 테이블 업데이트"""
@@ -193,11 +178,12 @@ class DBUpdater:
         else:
             tmnext = tmnow.replace(day=tmnow.day + 1, hour=17, minute=0,
                                    second=0)
+
+        print(f'Waiting for next update ({tmnext.strftime("%Y-%m-%d %H:%M")}) ... ')
+
         tmdiff = tmnext - tmnow
         secs = tmdiff.seconds
         t = Timer(secs, self.execute_daily)
-        print("Waiting for next update ({}) ... ".format(tmnext.strftime
-                                                         ('%Y-%m-%d %H:%M')))
         t.start()
 
 
