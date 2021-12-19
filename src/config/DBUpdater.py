@@ -1,30 +1,28 @@
-import sys
-from datetime import datetime
-from threading import Timer
-
 import calendar
 import json
 import pandas as pd
 import pymysql
 import requests
+import sys
 from bs4 import BeautifulSoup
+from datetime import datetime
+from threading import Timer
 
 
 class DBUpdater:
     def __init__(self):
         """생성자: MariaDB 연결 및 종목코드 딕셔너리 생성"""
         try:
-            with open('dbConfig.json', 'r') as in_file:
+            with open('config-db.json', 'r') as in_file:
                 config = json.load(in_file)
                 host = config['host']
                 user = config['user']
                 password = config['password']
                 db = config['db']
         except FileNotFoundError:
-            print('생성된 "dbConfig.json" 파일에 DB 정보를 기입 후, 다시 실행하세요.')
-            with open('dbConfig.json', 'w') as out_file:
-                config = {'host': 'localhost', 'user': 'user',
-                          'password': 'password', 'db': 'db'}
+            print('생성된 "config-db.json" 파일에 DB 정보를 기입 후, 다시 실행하세요.')
+            with open('config-db.json', 'w') as out_file:
+                config = {'host': 'localhost', 'user': 'user', 'password': 'password', 'db': 'db'}
                 json.dump(config, out_file)
             sys.exit()
 
