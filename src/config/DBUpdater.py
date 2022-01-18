@@ -5,9 +5,12 @@ import pymysql
 import requests
 import sys
 from Query import Query
+from ReadAndInsert import ReadAndInsert
 from bs4 import BeautifulSoup
 from datetime import datetime
-from threading import Timer
+import threading
+import time
+from multiprocessing.dummy import Pool as ThreadPool
 
 
 class DBUpdater:
@@ -100,7 +103,7 @@ class DBUpdater:
                 at_page_url = f'{url}&page={page}'
                 df = df.append(pd.read_html(requests.get(at_page_url, headers={'User-agent': 'Mozilla/5.0'}).text)[0])
                 tmnow = datetime.now().strftime('%Y-%m-%d %H:%M')
-                print(f'[{tmnow}] {name} ({id}) : {page:04d}/{pages:04d} pages are downloading...', end="\r")
+                # print(f'[{tmnow}] {name} ({id}) : {page:04d}/{pages:04d} pages are downloading...', end="\r")
             df = df.rename(columns={
                 '날짜': 'date',
                 '종가': 'close',
@@ -146,11 +149,21 @@ class DBUpdater:
 
     def update_daily_price(self, pages_to_fetch):
         """KRX 상장법인의 주식 시세를 네이버로부터 읽어서 DB에 업데이트"""
+        pool = ThreadPool(20)
+        myargs = []
         for idx, id in enumerate(self.__companies_id_to_name):
-            df = self.get_daily_data(id, self.__companies_id_to_name[id], pages_to_fetch)
-            if df is None:
-                continue
-            self.update_daily_price_and_volume(df, idx, id, self.__companies_id_to_name[id])
+            myargs.append((idx, id))
+            # pool.map(self.update_daily_price_run, (idx, id))
+            # df = self.get_daily_data(id, self.__companies_id_to_name[id], pages_to_fetch)
+            # if df is None:
+            #     continue
+            # self.update_daily_price_and_volume(df, idx, id, self.__companies_id_to_name[id])
+        # print(myargs)
+        pool.starmap(self.update_daily_price_run, myargs)
+
+    def update_daily_price_run(self, idx, id):
+        print(f'RUN {idx} , {id}')
+        ReadAndInsert(self.__query, idx, id, self.__companies_id_to_name[id], 100)
 
     def execute_daily(self):
         """실행 즉시 및 매일 오후 다섯시에 daily_price 테이블 업데이트"""
