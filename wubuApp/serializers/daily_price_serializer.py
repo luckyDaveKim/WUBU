@@ -1,7 +1,7 @@
 from datetime import datetime
-
 from rest_framework import serializers
-from wubuApp.models.daily_price_model import DailyPriceModel
+
+from wubuApp.models import DailyPriceModel
 
 
 class DailyPriceSerializer(serializers.ModelSerializer):

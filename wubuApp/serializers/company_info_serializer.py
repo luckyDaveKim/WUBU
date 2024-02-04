@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from wubuApp.models.company_info_model import CompanyInfoModel
+
+from wubuApp.models import CompanyInfoModel
 
 
 class CompanyInfoSerializer(serializers.ModelSerializer):
