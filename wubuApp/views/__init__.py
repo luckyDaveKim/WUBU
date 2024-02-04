@@ -1,2 +1,2 @@
-from .CompaniesAPI import CompaniesAPI
-from .DailyPriceAPI import DailyPriceAPI
+from .companies_api_view import CompaniesAPIView
+from .daily_price_api_view import DailyPriceAPIView

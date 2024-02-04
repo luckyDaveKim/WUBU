@@ -16,10 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from wubuApp.views import CompaniesAPI, DailyPriceAPI
+from wubuApp.views import CompaniesAPIView, DailyPriceAPIView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/companies/', CompaniesAPI.as_view()),
-    path('api/companies/<code>/price/daily/', DailyPriceAPI.as_view()),
+    path('api/companies/', CompaniesAPIView.as_view()),
+    path('api/companies/<code>/price/daily/', DailyPriceAPIView.as_view()),
 ]
