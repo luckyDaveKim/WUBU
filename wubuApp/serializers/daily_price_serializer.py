@@ -10,7 +10,7 @@ class DailyPriceSerializer(serializers.ModelSerializer):
 
     def get_date_timestamp(self, obj):
         datetime_object = datetime.combine(obj.date, datetime.min.time())
-        return int(datetime_object.timestamp())
+        return int(datetime_object.timestamp() * 1_000)
 
     def get_price(self, obj):
         return [obj.open, obj.high, obj.low, obj.close]
