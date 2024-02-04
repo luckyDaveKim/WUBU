@@ -17,11 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from wubuApp import views
-from wubuApp.views import CompaniesAPI
+from wubuApp.views import CompaniesAPI, DailyPriceAPI
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('companies/', views.product_list, name='company_list'),
     path('companies/<pk>/', views.product_detail, name='company_detail'),
-    path('api/companies/', CompaniesAPI.as_view())
+    path('api/companies/', CompaniesAPI.as_view()),
+    path('api/companies/<code>/price/daily/', DailyPriceAPI.as_view()),
 ]

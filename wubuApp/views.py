@@ -2,13 +2,22 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models.company_info_model import CompanyInfoModel
+from .models.daily_price_model import DailyPriceModel
 from .serializers.company_info_serializer import CompanyInfoSerializer
+from .serializers.daily_price_serializer import DailyPriceSerializer
 
 class CompaniesAPI(APIView):
     def get(self, request):
         queryset = CompanyInfoModel.objects.all()
         print(queryset)
         serializer = CompanyInfoSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+class DailyPriceAPI(APIView):
+    def get(self, request, code):
+        queryset = DailyPriceModel.objects.filter(code=code).order_by('date')
+        print(queryset)
+        serializer = DailyPriceSerializer(queryset, many=True)
         return Response(serializer.data)
 
 
