@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -6,6 +8,7 @@ from .models.daily_price_model import DailyPriceModel
 from .serializers.company_info_serializer import CompanyInfoSerializer
 from .serializers.daily_price_serializer import DailyPriceSerializer
 
+
 class CompaniesAPI(APIView):
     def get(self, request):
         market_type = 'KOSPI'
@@ -13,10 +16,42 @@ class CompaniesAPI(APIView):
         serializer = CompanyInfoSerializer(queryset, many=True)
         return Response(serializer.data)
 
+
 class DailyPriceAPI(APIView):
     def get(self, request, code):
-        queryset = DailyPriceModel.objects.filter(code=code).order_by('date')
-        print(queryset)
+        date_format = '%Y-%m-%d'
+
+        start_date = request.GET.get('startDate', None)
+        end_date = request.GET.get('endDate', None)
+
+        filters = [('code', code)]
+        try:
+            if start_date and end_date:
+                filters.append(
+                    (
+                        'date__range',
+                        [datetime.strptime(start_date, date_format), datetime.strptime(end_date, date_format)]
+                    )
+                )
+                filters.append(
+                    (
+                        'date__range',
+                        [start_date, end_date]
+                    )
+                )
+            elif start_date:
+                filters.append(
+                    ('date__gte', datetime.strptime(start_date, date_format))
+                )
+            elif end_date:
+                filters.append(
+                    ('date__lte', datetime.strptime(end_date, date_format))
+                )
+        except Exception as e:
+            print('start_date, end_date 파싱 오류!!!', e)
+
+        print('filter', *filters)
+        queryset = DailyPriceModel.objects.filter(*filters).order_by('date')
         serializer = DailyPriceSerializer(queryset, many=True)
         return Response(serializer.data)
 
