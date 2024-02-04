@@ -32,8 +32,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_pandas',
+    'rest_framework',
     'wubuApp',
-    'rest_framework'
 ]
 
 MIDDLEWARE = [
