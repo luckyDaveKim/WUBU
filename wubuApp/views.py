@@ -9,8 +9,7 @@ from .serializers.daily_price_serializer import DailyPriceSerializer
 class CompaniesAPI(APIView):
     def get(self, request):
         market_type = 'KOSPI'
-        queryset = CompanyInfoModel.objects.filter(market_type=market_type)
-        print(queryset)
+        queryset = CompanyInfoModel.objects.filter(market_type=market_type).order_by('company')
         serializer = CompanyInfoSerializer(queryset, many=True)
         return Response(serializer.data)
 
