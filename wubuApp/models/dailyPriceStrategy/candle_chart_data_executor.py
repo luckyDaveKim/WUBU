@@ -9,6 +9,6 @@ class CandleChartDataExecutor(StrategyExecutable):
 
     def execute(self, df):
         df['price'] = df.apply(lambda row: [row['open'], row['high'], row['low'], row['close']], axis=1)
-        df['date_timestamp'] = pd.to_datetime(df['date']).astype(int) / 10 ** 9
+        df['date_timestamp'] = pd.to_datetime(df['date']).astype(int) / 10 ** 6
 
         return df
