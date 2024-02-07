@@ -6,6 +6,6 @@ class CleanupExecutor(StrategyExecutable):
         return 'cleanup'
 
     def execute(self, df):
-        fields_to_remove = ['code', 'date', 'open', 'high', 'low', 'close', 'diff', 'volume']
+        fields_to_remove = ['code', 'diff', 'volume']
 
         return df.drop(fields_to_remove, axis=1)

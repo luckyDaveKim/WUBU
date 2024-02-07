@@ -1,5 +1,3 @@
-import pandas as pd
-
 from wubuApp.models.dailyPriceStrategy.strategy_executable import StrategyExecutable
 
 

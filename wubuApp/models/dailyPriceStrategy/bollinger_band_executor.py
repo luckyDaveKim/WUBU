@@ -8,7 +8,8 @@ class BollingerBandExecutor(StrategyExecutable):
     def execute(self, df):
         df['ma20'] = df['close'].rolling(window=20).mean()
         df['bollingerBandStdDev'] = df['close'].rolling(window=20).std()
-        df['bollingerBand'] = df.apply(lambda row: [row['ma20'] - (row['bollingerBandStdDev'] * 2), row['ma20'] + (row['bollingerBandStdDev'] * 2)], axis=1)
+        df['bollingerBandUpper'] = df['ma20'] + (df['bollingerBandStdDev'] * 2)
+        df['bollingerBandLower'] = df['ma20'] - (df['bollingerBandStdDev'] * 2)
 
         # 미사용 필드 제거
         df.drop('bollingerBandStdDev', axis=1)
