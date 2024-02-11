@@ -23,10 +23,24 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+SECRET_KEY = None
+
+# DB 설정
+DATABASE_ROUTERS = [
+    'wubuProject.dbrouter.DBRouter',
+]
+
+DATABASES = {
+    'default': None,
+    'mongodb': None,
+}
+
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    'wubuApp',
+    'mongoDBApp',
+    # 'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -34,7 +48,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_pandas',
     'rest_framework',
-    'wubuApp',
 ]
 
 MIDDLEWARE = [

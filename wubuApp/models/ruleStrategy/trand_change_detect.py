@@ -1,6 +1,6 @@
 from pandas import DataFrame
 
-from wubuApp.models.ruleStrategy.rule_response import RuleResponse
+from wubuApp.models.ruleStrategy.condition_response import ConditionResponse
 
 
 class TrandChangeDetect:
@@ -22,7 +22,7 @@ class TrandChangeDetect:
     - previous_nth (int): 변곡점인지 확인할, n번째 전 df 값
     """
 
-    def check(self, df: DataFrame, previous_nth: int) -> RuleResponse:
+    def check(self, df: DataFrame, previous_nth: int) -> ConditionResponse:
         if len(df) < previous_nth or previous_nth <= 0:
             raise ValueError(f"DataFrame의 길이 {len(df)} 보다 작고 0보다 큰 previous_nth: {previous_nth} 값을 사용해주세요.")
 
@@ -46,4 +46,4 @@ class TrandChangeDetect:
             matched_rule = target_value > prev_value and target_value > post_value
             print(f'Do upwardConvex check res: {matched_rule}')
 
-        return RuleResponse.success(df) if matched_rule else RuleResponse.failure(df)
+        return ConditionResponse.success(df) if matched_rule else ConditionResponse.failure(df)

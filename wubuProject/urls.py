@@ -14,14 +14,16 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
 from django.urls import path
-from wubuApp.views import CompaniesAPIView, DailyPriceAPIView, RuleExecutorAPIView, AnalysisAPIView
+
+from mongoDBApp.views import AnalysisAPIView, AnalysisCreateAPIView
+from wubuApp.views import CompaniesAPIView, DailyPriceAPIView, RuleExecutorAPIView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/analysis/', AnalysisAPIView.as_view()),
+    # path('api/analysis/', AnalysisAPIView.as_view()),
     path('api/companies/', CompaniesAPIView.as_view()),
     path('api/companies/<code>/price/daily/', DailyPriceAPIView.as_view()),
     path('api/rule/<code>/', RuleExecutorAPIView.as_view()),
+    path('api/analysis/', AnalysisAPIView.as_view()),
+    path('api/analysis/create/', AnalysisCreateAPIView.as_view()),
 ]

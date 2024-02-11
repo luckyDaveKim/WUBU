@@ -1,11 +1,11 @@
 from pandas import DataFrame
 
 from wubuApp.models.ruleStrategy.bound import Bound
-from wubuApp.models.ruleStrategy.rule_executable import RuleExecutable
-from wubuApp.models.ruleStrategy.rule_response import RuleResponse
+from wubuApp.models.ruleStrategy.condition_executable import ConditionExecutable
+from wubuApp.models.ruleStrategy.condition_response import ConditionResponse
 
 
-class RuleBollingerBandUpperBound(RuleExecutable):
+class ConditionBollingerBandUpperBound(ConditionExecutable):
     """
 
     Parameters:
@@ -20,5 +20,5 @@ class RuleBollingerBandUpperBound(RuleExecutable):
         self.previous_nth = previous_nth
         self.bound = Bound(value_name, upper_value_name, lower_value_name, n_percent, True)
 
-    def execute(self, df: DataFrame) -> RuleResponse:
+    def execute(self, df: DataFrame) -> ConditionResponse:
         return self.bound.check_bound_nth_previous(df, self.previous_nth)

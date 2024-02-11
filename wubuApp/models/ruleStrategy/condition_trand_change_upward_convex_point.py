@@ -1,11 +1,11 @@
 from pandas import DataFrame
 
-from wubuApp.models.ruleStrategy.rule_executable import RuleExecutable
-from wubuApp.models.ruleStrategy.rule_response import RuleResponse
+from wubuApp.models.ruleStrategy.condition_executable import ConditionExecutable
+from wubuApp.models.ruleStrategy.condition_response import ConditionResponse
 from wubuApp.models.ruleStrategy.trand_change_detect import TrandChangeDetect
 
 
-class RuleTrandChangeUpwardConvexPoint(RuleExecutable):
+class ConditionTrandChangeUpwardConvexPoint(ConditionExecutable):
     """
 
     Parameters:
@@ -17,5 +17,5 @@ class RuleTrandChangeUpwardConvexPoint(RuleExecutable):
         self.previous_nth = previous_nth
         self.trand_change_detect = TrandChangeDetect(value_name, False)
 
-    def execute(self, df: DataFrame) -> RuleResponse:
+    def execute(self, df: DataFrame) -> ConditionResponse:
         return self.trand_change_detect.check(df, self.previous_nth)

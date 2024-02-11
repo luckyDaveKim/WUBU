@@ -1,7 +1,7 @@
 from pandas import DataFrame
 
 
-class RuleResponse:
+class ConditionResponse:
     def __init__(self, matched_rule: bool, df: DataFrame = None):
         self.matched_rule = matched_rule
         self.df = df
@@ -14,16 +14,16 @@ class RuleResponse:
 
     @staticmethod
     def success(df: DataFrame):
-        return RuleResponse(True, df)
+        return ConditionResponse(True, df)
 
     @staticmethod
     def successOnly():
-        return RuleResponse(True)
+        return ConditionResponse(True)
 
     @staticmethod
     def failure(df: DataFrame):
-        return RuleResponse(False, df)
+        return ConditionResponse(False, df)
 
     @staticmethod
     def failureOnly():
-        return RuleResponse(False)
+        return ConditionResponse(False)
