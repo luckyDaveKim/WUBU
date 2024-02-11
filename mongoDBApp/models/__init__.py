@@ -1,1 +1,2 @@
+from .matched_rules_filter_condition import MatchedRulesFilterCondition
 from .matched_rules_model import MatchedRulesModel
