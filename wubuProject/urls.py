@@ -16,8 +16,7 @@ Including another URLconf
 """
 from django.urls import path
 
-from mongoDBApp.views import AnalysisAPIView, AnalysisCreateAPIView
-from wubuApp.views import CompaniesAPIView, DailyPriceAPIView, RuleExecutorAPIView
+from wubuApp.views import CompaniesAPIView, DailyPriceAPIView, RuleExecutorAPIView, AnalysisAPIView
 
 urlpatterns = [
     # path('api/analysis/', AnalysisAPIView.as_view()),
@@ -25,5 +24,4 @@ urlpatterns = [
     path('api/companies/<code>/price/daily/', DailyPriceAPIView.as_view()),
     path('api/rule/<code>/', RuleExecutorAPIView.as_view()),
     path('api/analysis/', AnalysisAPIView.as_view()),
-    path('api/analysis/create/', AnalysisCreateAPIView.as_view()),
 ]
