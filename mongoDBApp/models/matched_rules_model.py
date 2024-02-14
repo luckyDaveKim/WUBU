@@ -2,7 +2,7 @@ from djongo import models
 
 
 class MatchedRulesModel(models.Model):
-    code = models.CharField(max_length=6, primary_key=True)
+    code = models.CharField(max_length=6)
     analysis_date = models.DateField()
     rules = models.JSONField()
 

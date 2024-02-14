@@ -34,8 +34,6 @@ class Bound:
             raise ValueError(f"DataFrame의 길이 {len(df)} 보다 작고 0보다 큰 previous_nth: {previous_nth} 값을 사용해주세요.")
 
         row = df.iloc[-previous_nth]
-        print(type(row))
-        print(row['close'])
         matched_rule = self.check_bound(row).is_matched_rule()
         return ConditionResponse.success(df) if matched_rule else ConditionResponse.failure(df)
 

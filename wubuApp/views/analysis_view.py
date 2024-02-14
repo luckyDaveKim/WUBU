@@ -13,10 +13,13 @@ class AnalysisAPIView(APIView):
     def get(self, request):
         condition = (MatchedRulesFilterCondition
                      .builder()
-                     .set_analysis_date(request.GET.get('targetDate', datetime.now().strftime("%Y-%m-%d")))
+                     .set_code(request.GET.get('code', None))
+                     .set_analysis_date(request.GET.get('analysisDate', None))
+                     .set_start_analysis_date(request.GET.get('startAnalysisDate', None))
+                     .set_end_analysis_date(request.GET.get('endAnalysisDate', None))
                      .build())
 
-        queryset = MatchedRulesModel.objects.filter(*condition.get_filter()).order_by('code')
+        queryset = MatchedRulesModel.objects.filter(*condition.get_filter()).order_by('code', '-analysis_date')
         df = read_frame(queryset)
         json_data = json.loads(df.to_json(orient='records'))
 
