@@ -55,4 +55,6 @@ python -m pip install pymongo==3.12.3
 
 brew install pkg-config
 brew install mysql-client
+
+python -m pip install python-logstash
 ```
