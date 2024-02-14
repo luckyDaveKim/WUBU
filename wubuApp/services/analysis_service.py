@@ -31,10 +31,10 @@ class AnalysisService:
                 if matched_rule:
                     matched_rules_res[code] = matched_rule
 
-                    # matched_rules 저장
-                    analysis_date_text = daily_price_df.iloc[-1]['date']
-                    analysis_date = datetime.strptime(analysis_date_text, date_format).date()
-                    AnalysisService.save_analysis(code, analysis_date, matched_rule)
+                # matched_rules 저장
+                analysis_date_text = daily_price_df.iloc[-1]['date']
+                analysis_date = datetime.strptime(analysis_date_text, date_format).date()
+                AnalysisService.save_analysis(code, analysis_date, matched_rule)
             except Exception as e:
                 print(f"실패! {code}", e)
 
