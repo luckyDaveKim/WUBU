@@ -1,3 +1,21 @@
+- dependencies
+  - python: v3.11
+  - conda: v24.1.2
+
+```shell
+# 가상 환경 생성
+conda env create --file environment.yml
+
+# 가상 환경 적용
+conda activate wubuProject
+
+# 가상 환경 적용 해제
+conda deactivate
+
+# 가상 환경 정보 저장
+conda env export --name wubuProject > environment.yml
+```
+
 
 ## App 추가
 ```shell
@@ -40,21 +58,4 @@ python manage.py inspectdb --settings=wubuProject.settings.settings_local
 ## Run
 ```shell
 python manage.py runserver --settings=wubuProject.settings.settings_local
-```
-
-## Install
-```shell
-python -m pip install django
-python -m pip install django-cors-headers
-python -m pip install django-pandas
-python -m pip install djangorestframework
-python -m pip install mysqlclient
-python -m pip install djongo
-python -m pip install mongoengine
-python -m pip install pymongo==3.12.3
-
-brew install pkg-config
-brew install mysql-client
-
-python -m pip install python-logstash
 ```
