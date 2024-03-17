@@ -1,10 +1,10 @@
-from djongo import models
+from mongoengine import Document, StringField, DateField, DictField
 
 
-class MatchedRulesModel(models.Model):
-    code = models.CharField(max_length=6)
-    analysis_date = models.DateField()
-    rules = models.JSONField()
+class MatchedRulesModel(Document):
+    code = StringField(max_length=6)
+    analysis_date = DateField()
+    rules = DictField()
 
     class Meta:
         app_label = 'mongoDBApp'
