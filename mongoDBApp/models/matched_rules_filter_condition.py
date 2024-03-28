@@ -20,25 +20,25 @@ class MatchedRulesFilterCondition(FilterCondition):
         if self.code:
             filters.append(('code', self.code))
 
-        if self.analysis_date or self.start_analysis_date or self.end_analysis_date:
-            if self.analysis_date:
-                filters.append(('analysis_date', self.analysis_date))
-            else:
-                if self.start_analysis_date and self.end_analysis_date:
-                    filters.append(
-                        (
-                            'analysis_date__range',
-                            [self.start_analysis_date, self.end_analysis_date]
-                        )
-                    )
-                elif self.start_analysis_date:
-                    filters.append(
-                        ('analysis_date__gte', self.start_analysis_date)
-                    )
-                elif self.end_analysis_date:
-                    filters.append(
-                        ('analysis_date__lte', self.end_analysis_date)
-                    )
+        # if self.analysis_date or self.start_analysis_date or self.end_analysis_date:
+        #     if self.analysis_date:
+        #         filters.append(('analysis_date', self.analysis_date))
+        #     else:
+        #         if self.start_analysis_date and self.end_analysis_date:
+        #             filters.append(
+        #                 (
+        #                     'analysis_date__range',
+        #                     [self.start_analysis_date, self.end_analysis_date]
+        #                 )
+        #             )
+        #         elif self.start_analysis_date:
+        #             filters.append(
+        #                 ('analysis_date__gte', self.start_analysis_date)
+        #             )
+        #         elif self.end_analysis_date:
+        #             filters.append(
+        #                 ('analysis_date__lte', self.end_analysis_date)
+        #             )
 
         return filters
 
